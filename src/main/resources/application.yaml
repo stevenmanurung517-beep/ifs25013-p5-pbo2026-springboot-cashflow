@@ -2,7 +2,7 @@ spring:
   application:
     name: ifs25013-p5-pbo2026-springboot-cashflow
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_DATABASE}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_DATABASE}?prepareThreshold=0
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
