@@ -64,18 +64,37 @@ public final class AuthSession {
      * Mengembalikan pengguna yang sedang login, atau null bila belum login.
      * Setelah refresh/restart sesi dipulihkan dari cookie, kecuali pengguna sudah logout.
      */
+// Bagian login() dan logout() di atasnya TETAP SAMA
+
     public static User currentUser(IUserRepository userRepository) {
         VaadinSession session = VaadinSession.getCurrent();
         if (session == null) {
+            return null;
+        }
+        if (Boolean.TRUE.equals(session.getAttribute(LOGGED_OUT_KEY))) {
             return null;
         }
         Object storedId = session.getAttribute(USER_ID_KEY);
         if (storedId instanceof Integer userId) {
             return userRepository.findById(userId).orElse(null);
         }
-        if (Boolean.TRUE.equals(session.getAttribute(LOGGED_OUT_KEY))) {
-            return null;
+
+        // Cek juga dari HTTP Session (WrappedSession) yang sudah diisi saat login()
+        WrappedSession httpSession = session.getSession();
+        if (httpSession != null) {
+            if (Boolean.TRUE.equals(httpSession.getAttribute(LOGGED_OUT_KEY))) {
+                return null;
+            }
+            Object httpStoredId = httpSession.getAttribute(USER_ID_KEY);
+            if (httpStoredId instanceof Integer userId) {
+                User user = userRepository.findById(userId).orElse(null);
+                if (user != null) {
+                    session.setAttribute(USER_ID_KEY, user.getId());
+                    return user;
+                }
+            }
         }
+
         Integer cookieUserId = readCookieUserId();
         if (cookieUserId == null) {
             return null;
@@ -83,9 +102,14 @@ public final class AuthSession {
         User user = userRepository.findById(cookieUserId).orElse(null);
         if (user != null) {
             session.setAttribute(USER_ID_KEY, user.getId());
+            if (httpSession != null) {
+                httpSession.setAttribute(USER_ID_KEY, user.getId());
+            }
         }
         return user;
     }
+
+    // Bagian readCookieUserId(), parseToken(), dll di bawahnya TETAP SAMA
 
     // ------------------------------------------------------------------
 
