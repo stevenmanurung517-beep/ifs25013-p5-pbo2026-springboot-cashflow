@@ -1,0 +1,112 @@
+/* ===== Cashflow: gaya kustom di atas tema Lumo ===== */
+
+html {
+  --app-primary: #2563EB;
+  --app-footer-bg: #F3F4F6;
+}
+
+/* ----- Kursor pointer pada semua kontrol interaktif ----- */
+vaadin-button,
+vaadin-menu-bar-item,
+vaadin-menu-bar-button,
+vaadin-context-menu-item,
+vaadin-tab,
+vaadin-drawer-toggle,
+vaadin-upload-button,
+vaadin-grid-sorter,
+vaadin-side-nav-item::part(item),
+vaadin-side-nav-item a,
+a {
+  cursor: pointer;
+}
+
+/* Tombol nonaktif: kursor default / not-allowed */
+vaadin-button[disabled],
+vaadin-menu-bar-button[disabled],
+vaadin-menu-bar-item[disabled],
+vaadin-context-menu-item[disabled],
+vaadin-tab[disabled],
+vaadin-upload-button[disabled] {
+  cursor: not-allowed;
+}
+
+/* ----- Judul dan kartu halaman ----- */
+.app-title {
+  font-size: 1.25rem;
+  margin: 0 var(--lumo-space-m);
+}
+
+.page-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lumo-space-m);
+  padding: var(--lumo-space-l);
+  background: var(--lumo-base-color);
+  border: 1px solid var(--lumo-contrast-10pct);
+  border-radius: var(--lumo-border-radius-l);
+  box-shadow: var(--lumo-box-shadow-s);
+  box-sizing: border-box;
+}
+
+.page-card > h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+/* ----- Modal dialog: header primer, footer abu-abu, tombol di kanan ----- */
+.app-dialog::part(header) {
+  background: var(--app-primary);
+  color: #FFFFFF;
+}
+
+.app-dialog::part(title) {
+  color: #FFFFFF;
+}
+
+.app-dialog::part(header-content) {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-s);
+  color: #FFFFFF;
+}
+
+.app-dialog::part(footer) {
+  background: var(--app-footer-bg);
+  border-top: 1px solid var(--lumo-contrast-10pct);
+  justify-content: flex-end;
+}
+
+/* ----- Indikator loading global (bar menyala di atas layar) ----- */
+.v-loading-indicator {
+  position: fixed;
+  z-index: 2147483647;
+  top: 0;
+  left: 0;
+  right: auto;
+  width: 100%;
+  height: 4px;
+  opacity: 1;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--app-primary), transparent);
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  box-shadow: 0 0 10px var(--app-primary), 0 0 5px var(--app-primary);
+  animation: app-loading-glow 1s linear infinite;
+}
+
+.v-loading-indicator[style*='none'] {
+  display: none;
+}
+
+.v-loading-indicator.second {
+  background-color: rgba(37, 99, 235, 0.18);
+}
+
+.v-loading-indicator.third {
+  background-color: rgba(37, 99, 235, 0.32);
+}
+
+@keyframes app-loading-glow {
+  from { background-position: -50% 0; }
+  to { background-position: 150% 0; }
+}
