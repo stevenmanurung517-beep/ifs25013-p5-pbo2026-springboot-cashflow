@@ -1,6 +1,5 @@
 package org.delcom.ifs25013springbootcashflow.framework.view;
 
-import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -51,15 +50,26 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         password.setId("login-password");
         loginButton.setId("login-submit");
 
+        // Sinkronisasi instan saat robot/user mengetik
         username.setValueChangeMode(ValueChangeMode.EAGER);
         password.setValueChangeMode(ValueChangeMode.EAGER);
+
+        // Pastikan setiap ketikan/injeksi robot pada <input> langsung memicu event 'change' Vaadin
+        username.getElement().executeJs(
+            "const inp = this.querySelector('input') || this.shadowRoot?.querySelector('input');" +
+            "if (inp) { inp.addEventListener('input', () => { this.value = inp.value; this.dispatchEvent(new Event('change', {bubbles: true})); }); }"
+        );
+        password.getElement().executeJs(
+            "const inp = this.querySelector('input') || this.shadowRoot?.querySelector('input');" +
+            "if (inp) { inp.addEventListener('input', () => { this.value = inp.value; this.dispatchEvent(new Event('change', {bubbles: true})); }); }"
+        );
 
         username.setWidthFull();
         password.setWidthFull();
         loginButton.setWidthFull();
         loginButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         loginButton.addClickShortcut(Key.ENTER);
-        loginButton.addClickListener(event -> syncAndSubmit());
+        loginButton.addClickListener(event -> submit());
 
         progressBar.setIndeterminate(true);
         progressBar.setVisible(false);
@@ -81,32 +91,13 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         }
     }
 
-    private void syncAndSubmit() {
-        getElement().executeJs(
-            "const readVal = (id) => {" +
-            "  const el = document.getElementById(id);" +
-            "  if (!el) return '';" +
-            "  const inp = el.querySelector('input') || el.shadowRoot?.querySelector('input');" +
-            "  return el.value || (inp ? inp.value : '') || '';" +
-            "};" +
-            "$0.$server.doLogin(readVal('login-username'), readVal('login-password'));",
-            getElement()
-        );
-    }
-
-    @ClientCallable
-    public void doLogin(String jsUsername, String jsPassword) {
+    private void submit() {
         progressBar.setVisible(true);
         loginButton.setEnabled(false);
         try {
-            String finalUser = (username.getValue() != null && !username.getValue().isBlank())
-                    ? username.getValue() : jsUsername;
-            String finalPass = (password.getValue() != null && !password.getValue().isBlank())
-                    ? password.getValue() : jsPassword;
-
-            User user = authUseCase.login(finalUser, finalPass);
+            User user = authUseCase.login(username.getValue(), password.getValue());
             AuthSession.login(user);
-            UI.getCurrent().getPage().setLocation("/");
+            UI.getCurrent().navigate(FinanceView.class);
         } catch (ValidationException ex) {
             Toast.error(presenter.showValidationError(ex.getMessage()));
         } finally {
