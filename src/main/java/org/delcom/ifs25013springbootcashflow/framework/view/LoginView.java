@@ -53,7 +53,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         password.setId("login-password");
         loginButton.setId("login-submit");
 
-        // Pastikan input yang diisi robot otomasi langsung tersinkron ke server
+        // Atribut tambahan & sinkronisasi instan agar terbaca oleh robot otomasi
+        username.getElement().setAttribute("name", "username");
+        password.getElement().setAttribute("name", "password");
         username.setValueChangeMode(ValueChangeMode.EAGER);
         password.setValueChangeMode(ValueChangeMode.EAGER);
 
@@ -88,9 +90,19 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         progressBar.setVisible(true);
         loginButton.setEnabled(false);
         try {
-            User user = authUseCase.login(username.getValue(), password.getValue());
+            String rawUser = username.getValue();
+            if (rawUser == null || rawUser.isBlank()) {
+                rawUser = username.getElement().getProperty("value", "");
+            }
+
+            String rawPass = password.getValue();
+            if (rawPass == null || rawPass.isBlank()) {
+                rawPass = password.getElement().getProperty("value", "");
+            }
+
+            User user = authUseCase.login(rawUser, rawPass);
             AuthSession.login(user);
-            UI.getCurrent().navigate(FinanceView.class);
+            UI.getCurrent().getPage().setLocation("/");
         } catch (ValidationException ex) {
             Toast.error(presenter.showValidationError(ex.getMessage()));
         } finally {
