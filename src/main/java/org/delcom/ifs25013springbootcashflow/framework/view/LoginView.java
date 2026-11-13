@@ -1,6 +1,5 @@
 package org.delcom.ifs25013springbootcashflow.framework.view;
 
-import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -24,6 +23,9 @@ import org.delcom.ifs25013springbootcashflow.domain.repository.IUserRepository;
 import org.delcom.ifs25013springbootcashflow.framework.auth.AuthSession;
 import org.delcom.ifs25013springbootcashflow.usecase.AuthUseCase;
 
+/**
+ * Halaman login (publik). Bila sudah login, pengguna dialihkan otomatis ke halaman utama.
+ */
 @Route("login")
 @PageTitle("Masuk | Cashflow")
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
@@ -51,6 +53,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         password.setId("login-password");
         loginButton.setId("login-submit");
 
+        // Atribut tambahan & sinkronisasi instan agar terbaca oleh robot otomasi
+        username.getElement().setAttribute("name", "username");
+        password.getElement().setAttribute("name", "password");
         username.setValueChangeMode(ValueChangeMode.EAGER);
         password.setValueChangeMode(ValueChangeMode.EAGER);
 
@@ -59,7 +64,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         loginButton.setWidthFull();
         loginButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         loginButton.addClickShortcut(Key.ENTER);
-        loginButton.addClickListener(event -> syncAndSubmit());
+        loginButton.addClickListener(event -> submit());
 
         progressBar.setIndeterminate(true);
         progressBar.setVisible(false);
@@ -81,30 +86,23 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         }
     }
 
-    private void syncAndSubmit() {
-        getElement().executeJs(
-            "const uEl = document.getElementById('login-username');" +
-            "const pEl = document.getElementById('login-password');" +
-            "const uVal = (uEl && (uEl.value || uEl.querySelector('input')?.value)) || '';" +
-            "const pVal = (pEl && (pEl.value || pEl.querySelector('input')?.value)) || '';" +
-            "$0.$server.doLogin(uVal, pVal);",
-            getElement()
-        );
-    }
-
-    @ClientCallable
-    public void doLogin(String jsUsername, String jsPassword) {
+    private void submit() {
         progressBar.setVisible(true);
         loginButton.setEnabled(false);
         try {
-            String finalUser = (username.getValue() != null && !username.getValue().isBlank())
-                    ? username.getValue() : jsUsername;
-            String finalPass = (password.getValue() != null && !password.getValue().isBlank())
-                    ? password.getValue() : jsPassword;
+            String rawUser = username.getValue();
+            if (rawUser == null || rawUser.isBlank()) {
+                rawUser = username.getElement().getProperty("value", "");
+            }
 
-            User user = authUseCase.login(finalUser, finalPass);
+            String rawPass = password.getValue();
+            if (rawPass == null || rawPass.isBlank()) {
+                rawPass = password.getElement().getProperty("value", "");
+            }
+
+            User user = authUseCase.login(rawUser, rawPass);
             AuthSession.login(user);
-            UI.getCurrent().navigate(FinanceView.class);
+            UI.getCurrent().getPage().setLocation("/");
         } catch (ValidationException ex) {
             Toast.error(presenter.showValidationError(ex.getMessage()));
         } finally {
