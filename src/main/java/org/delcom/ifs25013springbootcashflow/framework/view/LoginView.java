@@ -1,5 +1,6 @@
 package org.delcom.ifs25013springbootcashflow.framework.view;
 
+import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -23,9 +24,6 @@ import org.delcom.ifs25013springbootcashflow.domain.repository.IUserRepository;
 import org.delcom.ifs25013springbootcashflow.framework.auth.AuthSession;
 import org.delcom.ifs25013springbootcashflow.usecase.AuthUseCase;
 
-/**
- * Halaman login (publik). Bila sudah login, pengguna dialihkan otomatis ke halaman utama.
- */
 @Route("login")
 @PageTitle("Masuk | Cashflow")
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
@@ -53,9 +51,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         password.setId("login-password");
         loginButton.setId("login-submit");
 
-        // Atribut tambahan & sinkronisasi instan agar terbaca oleh robot otomasi
-        username.getElement().setAttribute("name", "username");
-        password.getElement().setAttribute("name", "password");
         username.setValueChangeMode(ValueChangeMode.EAGER);
         password.setValueChangeMode(ValueChangeMode.EAGER);
 
@@ -64,7 +59,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         loginButton.setWidthFull();
         loginButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         loginButton.addClickShortcut(Key.ENTER);
-        loginButton.addClickListener(event -> submit());
+        loginButton.addClickListener(event -> syncAndSubmit());
 
         progressBar.setIndeterminate(true);
         progressBar.setVisible(false);
@@ -86,21 +81,30 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         }
     }
 
-    private void submit() {
+    private void syncAndSubmit() {
+        getElement().executeJs(
+            "const readVal = (id) => {" +
+            "  const el = document.getElementById(id);" +
+            "  if (!el) return '';" +
+            "  const inp = el.querySelector('input') || el.shadowRoot?.querySelector('input');" +
+            "  return el.value || (inp ? inp.value : '') || '';" +
+            "};" +
+            "$0.$server.doLogin(readVal('login-username'), readVal('login-password'));",
+            getElement()
+        );
+    }
+
+    @ClientCallable
+    public void doLogin(String jsUsername, String jsPassword) {
         progressBar.setVisible(true);
         loginButton.setEnabled(false);
         try {
-            String rawUser = username.getValue();
-            if (rawUser == null || rawUser.isBlank()) {
-                rawUser = username.getElement().getProperty("value", "");
-            }
+            String finalUser = (username.getValue() != null && !username.getValue().isBlank())
+                    ? username.getValue() : jsUsername;
+            String finalPass = (password.getValue() != null && !password.getValue().isBlank())
+                    ? password.getValue() : jsPassword;
 
-            String rawPass = password.getValue();
-            if (rawPass == null || rawPass.isBlank()) {
-                rawPass = password.getElement().getProperty("value", "");
-            }
-
-            User user = authUseCase.login(rawUser, rawPass);
+            User user = authUseCase.login(finalUser, finalPass);
             AuthSession.login(user);
             UI.getCurrent().getPage().setLocation("/");
         } catch (ValidationException ex) {
