@@ -45,24 +45,12 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         setAlignItems(FlexComponent.Alignment.CENTER);
         setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-        // ID elemen wajib untuk pengujian / otomasi.
         username.setId("login-username");
         password.setId("login-password");
         loginButton.setId("login-submit");
 
-        // Sinkronisasi instan saat robot/user mengetik
         username.setValueChangeMode(ValueChangeMode.EAGER);
         password.setValueChangeMode(ValueChangeMode.EAGER);
-
-        // Pastikan setiap ketikan/injeksi robot pada <input> langsung memicu event 'change' Vaadin
-        username.getElement().executeJs(
-            "const inp = this.querySelector('input') || this.shadowRoot?.querySelector('input');" +
-            "if (inp) { inp.addEventListener('input', () => { this.value = inp.value; this.dispatchEvent(new Event('change', {bubbles: true})); }); }"
-        );
-        password.getElement().executeJs(
-            "const inp = this.querySelector('input') || this.shadowRoot?.querySelector('input');" +
-            "if (inp) { inp.addEventListener('input', () => { this.value = inp.value; this.dispatchEvent(new Event('change', {bubbles: true})); }); }"
-        );
 
         username.setWidthFull();
         password.setWidthFull();
@@ -94,15 +82,52 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     private void submit() {
         progressBar.setVisible(true);
         loginButton.setEnabled(false);
-        try {
-            User user = authUseCase.login(username.getValue(), password.getValue());
-            AuthSession.login(user);
-            UI.getCurrent().navigate(FinanceView.class);
-        } catch (ValidationException ex) {
-            Toast.error(presenter.showValidationError(ex.getMessage()));
-        } finally {
-            progressBar.setVisible(false);
-            loginButton.setEnabled(true);
+
+        // Tarik nilai langsung dari DOM elemen Vaadin saat tombol diklik
+        UI.getCurrent().getPage().executeJs(
+            "const getVal = (id) => {" +
+            "  const host = document.getElementById(id);" +
+            "  if (!host) return '';" +
+            "  if (host.value) return host.value;" +
+            "  const lightInput = host.querySelector('input');" +
+            "  if (lightInput && lightInput.value) return lightInput.value;" +
+            "  const shadowInput = host.shadowRoot ? host.shadowRoot.querySelector('input') : null;" +
+            "  return shadowInput ? shadowInput.value : '';" +
+            "};" +
+            "return JSON.stringify({ u: getVal('login-username'), p: getVal('login-password') });"
+        ).then(String.class, json -> {
+            try {
+                String parsedUser = extractJsonField(json, "u");
+                String parsedPass = extractJsonField(json, "p");
+
+                String finalUser = (username.getValue() != null && !username.getValue().isBlank())
+                        ? username.getValue() : parsedUser;
+                String finalPass = (password.getValue() != null && !password.getValue().isBlank())
+                        ? password.getValue() : parsedPass;
+
+                User user = authUseCase.login(finalUser, finalPass);
+                AuthSession.login(user);
+                UI.getCurrent().navigate(FinanceView.class);
+            } catch (ValidationException ex) {
+                Toast.error(presenter.showValidationError(ex.getMessage()));
+            } finally {
+                progressBar.setVisible(false);
+                loginButton.setEnabled(true);
+            }
+        });
+    }
+
+    private static String extractJsonField(String json, String key) {
+        if (json == null) {
+            return "";
         }
+        String token = "\"" + key + "\":\"";
+        int start = json.indexOf(token);
+        if (start < 0) {
+            return "";
+        }
+        start += token.length();
+        int end = json.indexOf("\"", start);
+        return end > start ? json.substring(start, end) : "";
     }
 }
