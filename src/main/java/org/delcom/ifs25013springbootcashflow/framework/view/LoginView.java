@@ -11,6 +11,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -51,6 +52,10 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         username.setId("login-username");
         password.setId("login-password");
         loginButton.setId("login-submit");
+
+        // Pastikan input yang diisi robot otomasi langsung tersinkron ke server
+        username.setValueChangeMode(ValueChangeMode.EAGER);
+        password.setValueChangeMode(ValueChangeMode.EAGER);
 
         username.setWidthFull();
         password.setWidthFull();
