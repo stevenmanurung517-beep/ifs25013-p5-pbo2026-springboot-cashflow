@@ -43,7 +43,8 @@ class SummaryCards extends HorizontalLayout {
                 .set("display", "block")
                 .set("font-size", "0.875rem")
                 .set("font-weight", "500")
-                .set("color", accent);
+                // Warna gelap agar kontras teks lolos Axe (minimal 4.5:1)
+                .set("color", valueColor);
 
         value.getStyle()
                 .set("display", "block")

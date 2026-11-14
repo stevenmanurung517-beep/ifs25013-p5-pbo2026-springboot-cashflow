@@ -1,5 +1,6 @@
 package org.delcom.ifs25013springbootcashflow.framework.view;
 
+import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -9,6 +10,8 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -40,6 +43,15 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         }
     }
 
+    /** Aksesibilitas: konten halaman aktif menjadi landmark <main>. */
+    @Override
+    public void showRouterLayoutContent(HasElement content) {
+        super.showRouterLayoutContent(content);
+        if (content != null) {
+            content.getElement().setAttribute("role", "main");
+        }
+    }
+
     private void build(User user) {
         H1 title = new H1("Cashflow");
         title.addClassName("app-title");
@@ -47,7 +59,14 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         Span spacer = new Span();
         spacer.getStyle().set("flex", "1");
 
-        addToNavbar(new DrawerToggle(), title, spacer, buildAvatarMenu(user));
+        // Aksesibilitas: header dibungkus landmark banner
+        HorizontalLayout header = new HorizontalLayout(new DrawerToggle(), title, spacer, buildAvatarMenu(user));
+        header.setWidthFull();
+        header.setAlignItems(FlexComponent.Alignment.CENTER);
+        header.setSpacing(false);
+        header.getElement().setAttribute("role", "banner");
+
+        addToNavbar(header);
         addToDrawer(buildNavigation(user));
         setPrimarySection(Section.DRAWER);
     }

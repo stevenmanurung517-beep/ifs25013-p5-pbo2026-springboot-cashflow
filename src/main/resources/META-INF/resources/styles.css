@@ -48,9 +48,16 @@ vaadin-upload-button[disabled] {
   box-sizing: border-box;
 }
 
+.page-card > h1,
 .page-card > h2 {
   margin: 0;
   font-size: 1.35rem;
+}
+
+/* Link di dalam teks harus dibedakan bukan hanya dengan warna (Axe: link-in-text-block) */
+.page-card a,
+.page-card a:hover {
+  text-decoration: underline;
 }
 
 /* ----- Modal dialog: header primer, footer abu-abu, tombol di kanan ----- */

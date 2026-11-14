@@ -45,6 +45,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         setAlignItems(FlexComponent.Alignment.CENTER);
         setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
+        // Aksesibilitas: seluruh halaman ini adalah landmark <main>
+        getElement().setAttribute("role", "main");
+
         // Pasang id langsung ke elemen <input> di dalam Vaadin TextField & PasswordField
         username.getElement().executeJs(
                 "const inp = this.inputElement || this.querySelector('input');" +
@@ -72,7 +75,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         Paragraph registerHint = new Paragraph("Belum punya akun? ");
         registerHint.add(new Anchor("register", "Daftar"));
 
-        PageCard card = new PageCard("Masuk ke Cashflow",
+        PageCard card = new PageCard("Masuk ke Cashflow", true,
                 username, password, progressBar, loginButton, registerHint);
         card.setWidth("380px");
         card.setMaxWidth("95vw");

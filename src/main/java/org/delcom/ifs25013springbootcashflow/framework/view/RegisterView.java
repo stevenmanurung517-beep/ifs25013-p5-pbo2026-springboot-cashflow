@@ -47,6 +47,9 @@ public class RegisterView extends VerticalLayout implements BeforeEnterObserver 
         setAlignItems(FlexComponent.Alignment.CENTER);
         setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
+        // Aksesibilitas: seluruh halaman ini adalah landmark <main>
+        getElement().setAttribute("role", "main");
+
         fullName.setWidthFull();
         username.setWidthFull();
         password.setWidthFull();
@@ -61,7 +64,7 @@ public class RegisterView extends VerticalLayout implements BeforeEnterObserver 
         Paragraph loginHint = new Paragraph("Sudah punya akun? ");
         loginHint.add(new Anchor("login", "Masuk"));
 
-        PageCard card = new PageCard("Daftar Akun Cashflow",
+        PageCard card = new PageCard("Daftar Akun Cashflow", true,
                 fullName, username, password, progressBar, registerButton, loginHint);
         card.setWidth("380px");
         card.setMaxWidth("95vw");
