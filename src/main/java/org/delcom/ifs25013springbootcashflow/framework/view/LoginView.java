@@ -45,8 +45,15 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         setAlignItems(FlexComponent.Alignment.CENTER);
         setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-        username.setId("login-username");
-        password.setId("login-password");
+        // Pasang id langsung ke elemen <input> di dalam Vaadin TextField & PasswordField
+        username.getElement().executeJs(
+                "const inp = this.inputElement || this.querySelector('input');" +
+                "if (inp) { inp.id = 'login-username'; }"
+        );
+        password.getElement().executeJs(
+                "const inp = this.inputElement || this.querySelector('input');" +
+                "if (inp) { inp.id = 'login-password'; }"
+        );
         loginButton.setId("login-submit");
 
         username.setValueChangeMode(ValueChangeMode.EAGER);
@@ -83,15 +90,16 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         progressBar.setVisible(true);
         loginButton.setEnabled(false);
 
-        // Tarik nilai langsung dari DOM elemen Vaadin saat tombol diklik
+        // Tarik nilai langsung dari elemen <input id="login-username"> dan <input id="login-password">
         UI.getCurrent().getPage().executeJs(
             "const getVal = (id) => {" +
-            "  const host = document.getElementById(id);" +
-            "  if (!host) return '';" +
-            "  if (host.value) return host.value;" +
-            "  const lightInput = host.querySelector('input');" +
+            "  const el = document.getElementById(id);" +
+            "  if (!el) return '';" +
+            "  if (el.tagName === 'INPUT') return el.value || '';" +
+            "  if (el.value) return el.value;" +
+            "  const lightInput = el.querySelector('input');" +
             "  if (lightInput && lightInput.value) return lightInput.value;" +
-            "  const shadowInput = host.shadowRoot ? host.shadowRoot.querySelector('input') : null;" +
+            "  const shadowInput = el.shadowRoot ? el.shadowRoot.querySelector('input') : null;" +
             "  return shadowInput ? shadowInput.value : '';" +
             "};" +
             "return JSON.stringify({ u: getVal('login-username'), p: getVal('login-password') });"
