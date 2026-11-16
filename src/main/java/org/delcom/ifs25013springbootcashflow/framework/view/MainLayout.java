@@ -73,9 +73,6 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
     private SideNav buildNavigation(User user) {
         SideNav nav = new SideNav();
-        // Aksesibilitas: sidebar menjadi landmark navigasi
-        nav.getElement().setAttribute("role", "navigation");
-        nav.getElement().setAttribute("aria-label", "Menu utama");
         nav.addItem(new SideNavItem("Transaksi", FinanceView.class, VaadinIcon.WALLET.create()));
         nav.addItem(new SideNavItem("Profil", ProfileView.class, VaadinIcon.USER.create()));
         if (user.isAdmin()) {
